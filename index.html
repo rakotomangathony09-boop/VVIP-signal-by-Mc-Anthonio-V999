@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VVIP GOLD QUANTUM - MC ANTHONIO</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#050505">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <style>
+        :root { --bg: #050505; --gold: #d4af37; --green: #00ff88; --red: #ff3333; --card: #0a0a0a; --border: #1a1a1a; --text: #ffffff; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; }
+        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .payment-card { width: 90%; max-width: 400px; padding: 25px; border: 1px solid var(--gold); border-radius: 15px; background: #0a0a0a; margin-bottom: 20px; box-shadow: 0 0 30px rgba(212, 175, 55, 0.2); }
+        .mvola-badge { background: #ffcc00; color: #000; padding: 12px 25px; border-radius: 8px; font-weight: 900; margin: 15px 0; display: inline-block; font-size: 18px; }
+        .wa-btn { background: #25d366; color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
+        .auth-input { padding: 15px; border-radius: 8px; border: 1px solid var(--gold); background: #111; color: #fff; text-align: center; width: 80%; margin-bottom: 15px; font-size: 16px; text-transform: uppercase; }
+        .terminal { width: 92%; max-width: 500px; margin: 20px auto; border: 1px solid var(--border); padding: 20px; border-radius: 16px; background: var(--card); }
+        .price-main { font-size: 55px; font-weight: 900; text-align: center; color: var(--text); margin: 10px 0; letter-spacing: -2px; }
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
+        .metric-item { background: #111; padding: 12px; border-radius: 8px; border: 1px solid #222; }
+        .m-label { font-size: 9px; color: #888; text-transform: uppercase; margin-bottom: 5px; }
+        .m-val { font-size: 11px; font-weight: bold; color: var(--gold); }
+        .btn-copy { background: var(--gold); color: #000; border: none; padding: 18px; border-radius: 8px; font-weight: 900; width: 100%; cursor: pointer; text-transform: uppercase; font-size: 14px; }
+        #signal-box { display: none; background: rgba(0, 255, 136, 0.05); border: 2px solid var(--green); padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; }
+        .risk-badge { background: rgba(212,175,55,0.1); padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(212,175,55,0.3); }
+    </style>
+</head>
+<body>
+
+<div id="auth-screen">
+    <h1 style="color:var(--gold); letter-spacing:3px; margin-bottom:5px;">VVIP GOLD QUANTUM</h1>
+    <div class="payment-card">
+        <div class="mvola-badge">MVOLA : 038 11 549 93</div>
+        <p style="font-size:14px;">Abonnement VIP (30j) : <b style="color:var(--gold);">20.000 Ar</b></p>
+        <a href="https://wa.me/261381154993" class="wa-btn">WHATSAPP : +261 38 115 49 93</a>
+    </div>
+    <input type="text" id="access-key" class="auth-input" placeholder="ENTREZ VOTRE CLÉ UNIQUE">
+    <button onclick="unlock()" class="btn-copy" style="width:85%;">DÉVERROUILLER</button>
+</div>
+
+<div class="terminal">
+    <div style="text-align:center; border-bottom: 1px solid #222; padding-bottom: 10px; margin-bottom: 15px;">
+        <h2 style="font-size:16px; color:var(--gold); margin:0;">VVIP SIGNAL BY MC ANTHONIO</h2>
+        <p id="mada-clock" style="font-size:10px; opacity:0.5; margin:5px 0;">--:--:--</p>
+    </div>
+    <div id="current-price" class="price-main">0000.00</div>
+    <div class="metrics-grid">
+        <div class="metric-item"><div class="m-label">COT (Banks)</div><div id="cot-val" class="m-val">SYNC...</div></div>
+        <div class="metric-item"><div class="m-label">Sentiment Retail</div><div id="sent-val" class="m-val">SCAN...</div></div>
+        <div class="metric-item"><div class="m-label">Oanda OrderBook</div><div id="oanda-val" class="m-val">FETCH...</div></div>
+        <div class="metric-item"><div class="m-label">Structure SMC</div><div id="smc-val" class="m-val">WAIT...</div></div>
+    </div>
+    <div id="signal-box">
+        <div id="sig-type" style="font-weight: 900; font-size: 22px; margin-bottom: 10px;"></div>
+        <div id="sig-content" style="font-family: monospace; font-size: 15px; line-height: 1.6; margin-bottom: 20px;"></div>
+        <button class="btn-copy" onclick="copySignal()">📋 COPIER SIGNAL SNIPER</button>
+    </div>
+</div>
+
+<script>
+    const SECRET_PREFIX = "MC-"; 
+    let price = 0, activeTrade = null, wakeLock = null;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // REGISTRATION SERVICE WORKER
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+
+    async function requestWakeLock() {
+        try { if ('wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); } } catch (err) {}
+    }
+
+    function unlock() {
+        const key = document.getElementById('access-key').value.toUpperCase();
+        if(key.startsWith(SECRET_PREFIX) && key.length >= 5) {
+            if ("Notification" in window) { Notification.requestPermission(); }
+            requestWakeLock();
+            document.getElementById('auth-screen').style.display='none';
+            init();
+        } else { alert("Code invalide."); }
+    }
+
+    async function init() {
+        setInterval(async () => {
+            try {
+                const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=PAXGUSDT');
+                const data = await res.json();
+                price = parseFloat(data.price);
+                document.getElementById('current-price').innerText = price.toFixed(2);
+                const now = new Date();
+                document.getElementById('mada-clock').innerText = "ANTANANARIVO: " + now.toLocaleTimeString("fr-FR", {timeZone: "Indian/Antananarivo"});
+                if(new Date().getDay() !== 0 && new Date().getDay() !== 6) runAnalysis();
+                else document.getElementById('current-price').innerText = "CLOSED";
+            } catch(e) {}
+        }, 2000);
+    }
+
+    function runAnalysis() {
+        const retailShort = 88; // Simulé pour l'exemple
+        document.getElementById('cot-val').innerText = "BULLISH FLOW";
+        document.getElementById('sent-val').innerText = retailShort + "% SHORT";
+        document.getElementById('oanda-val').innerText = "SL HUNT @ " + (price + 4.8).toFixed(2);
+        document.getElementById('smc-val').innerText = "OB DETECTED";
+        if(retailShort > 80 && !activeTrade) trigger("BUY");
+    }
+
+    function trigger(side) {
+        activeTrade = { type: side, entry: price, sl: side === "BUY" ? price - 3.8 : price + 3.8, tp: side === "BUY" ? price + 25 : price - 25 };
+        document.getElementById('signal-box').style.display = "block";
+        document.getElementById('sig-type').innerText = "🔱 " + side + " INSTITUTIONAL";
+        document.getElementById('sig-type').style.color = side === "BUY" ? "var(--green)" : "var(--red)";
+        document.getElementById('sig-content').innerHTML = `ENTRY : <b>${activeTrade.entry.toFixed(2)}</b><br>SL : <b style="color:var(--red);">${activeTrade.sl.toFixed(2)}</b><br>TP : <b style="color:var(--green);">${activeTrade.tp.toFixed(2)}</b>`;
+        
+        const beep = audioCtx.createOscillator(); beep.connect(audioCtx.destination); beep.start(); beep.stop(audioCtx.currentTime + 0.3);
+        if (Notification.permission === "granted") {
+            new Notification("🔱 SIGNAL SNIPER", { body: `${side} GOLD @ ${price}`, icon: "https://cdn-icons-png.flaticon.com/512/2502/2502127.png" });
+        }
+    }
+
+    function copySignal() {
+        const msg = `🔱 SIGNAL MC ANTHONIO\nACTION : ${activeTrade.type}\nENTRY : ${activeTrade.entry.toFixed(2)}\nSL : ${activeTrade.sl.toFixed(2)}\nTP : ${activeTrade.tp.toFixed(2)}`;
+        navigator.clipboard.writeText(msg); alert("Copié !");
+    }
+</script>
+</body>
+  </html>
